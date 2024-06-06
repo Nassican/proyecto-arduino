@@ -1,47 +1,37 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
-import psycopg2
-import pandas as pd
-import serial
-import json
+from flask import Flask, render_template, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from models import db, Datos
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = process.env.SECRET_KEY
-socketio = SocketIO(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Configuración de la conexión a la base de datos PostgreSQL
-conn = psycopg2.connect(
-    host=process.env.DB_HOST,
-    database=process.env.DB_NAME,
-    user=process.env.DB_USER,
-    password=process.env.DB_PASSWORD,
-)
+db.init_app(app)
 
-# Configuración del puerto serie
-# try:
-#     ser = serial.Serial('COM3', 115200)
-# except serial.SerialException as e:
-#     print(f"No se pudo abrir el puerto: {e}")
-#     exit()
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@socketio.on('obtener_datos')
+@app.route('/datos')
 def obtener_datos():
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM notas ORDER BY id DESC LIMIT 10")
-    notas = cur.fetchall()
-    cur.close()
-
-    # Convertir los datos a un DataFrame de Pandas
-    df = pd.DataFrame(notas, columns=['id', 'tecla', 'frecuencia', 'nota', 'correcta'])
-
-    # Convertir el DataFrame a un diccionario
-    data = df.to_dict('records')
-
-    socketio.emit('actualizar_datos', data)
+    datos = Datos.query.order_by(Datos.timestamp.desc()).limit(10).all()
+    resultados = [
+        {
+            'tecla': dato.tecla,
+            'frecuencia': dato.frecuencia,
+            'nota': dato.nota,
+            'correcta': dato.correcta,
+            'timestamp': dato.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        for dato in datos
+    ]
+    return jsonify(resultados)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)

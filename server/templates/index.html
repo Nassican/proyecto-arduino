@@ -1,49 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Aplicación de Notas Musicales</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Musical</title>
     <script>
-        $(document).ready(function() {
-            var socket = io();
-            var tabla = $('#tabla-notas').DataTable({
-                data: [],
-                columns: [
-                    { title: "Tecla" },
-                    { title: "Frecuencia" },
-                    { title: "Nota" },
-                    { title: "Correcta" }
-                ]
-            });
+        async function actualizarDatos() {
+            const response = await fetch('/datos');
+            const datos = await response.json();
 
-            socket.on('connect', function() {
-                console.log('Conectado al servidor');
-                socket.emit('obtener_datos');
-            });
+            const tabla = document.getElementById('datos-tabla');
+            tabla.innerHTML = '<tr><th>Tecla</th><th>Frecuencia</th><th>Nota</th><th>Correcta</th><th>Timestamp</th></tr>';
 
-            socket.on('actualizar_datos', function(data) {
-                tabla.clear();
-                tabla.rows.add(data);
-                tabla.draw();
+            datos.forEach(dato => {
+                const row = tabla.insertRow();
+                row.insertCell(0).innerText = dato.tecla;
+                row.insertCell(1).innerText = dato.frecuencia;
+                row.insertCell(2).innerText = dato.nota;
+                row.insertCell(3).innerText = dato.correcta ? 'Sí' : 'No';
+                row.insertCell(4).innerText = dato.timestamp;
             });
-        });
+        }
+
+        setInterval(actualizarDatos, 1000);
     </script>
 </head>
-<body>
-    <h1>Aplicación de Notas Musicales</h1>
-    <table id="tabla-notas" class="display" style="width:100%">
-        <thead>
-            <tr>
-                <th>Tecla</th>
-                <th>Frecuencia</th>
-                <th>Nota</th>
-                <th>Correcta</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+<body onload="actualizarDatos()">
+    <h1>Datos en Tiempo Real</h1>
+    <table id="datos-tabla" border="1">
+        <tr>
+            <th>Tecla</th>
+            <th>Frecuencia</th>
+            <th>Nota</th>
+            <th>Correcta</th>
+            <th>Timestamp</th>
+        </tr>
     </table>
 </body>
 </html>
