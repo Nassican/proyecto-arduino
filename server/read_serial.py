@@ -30,12 +30,18 @@ try:
             try:
                 datos = json.loads(linea)
                 tecla = datos['tecla']
+                nota_tecla = datos['nota_tecla']
                 frecuencia = datos['frecuencia']
                 nota = datos['nota']
                 correcta = datos['correcta']
 
+                if nota == "":
+                    nota = "---"
+
                 # Guardar los datos en la base de datos
-                nuevo_dato = Datos(tecla=tecla, frecuencia=frecuencia, nota=nota, correcta=correcta)
+                nuevo_dato = Datos(tecla=tecla, nota_tecla=nota_tecla, frecuencia=frecuencia, nota=nota, correcta=correcta)
+                # print(nuevo_dato)
+                
                 session.add(nuevo_dato)
                 session.commit()
 

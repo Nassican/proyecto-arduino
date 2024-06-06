@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Musical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos personalizados para la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e2e8f0;
+            font-family: Arial, sans-serif;
+            border-radius: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f7fafc;
+        }
+
+        /* Estilos personalizados para la lista */
+        .list-group {
+            margin-top: 20px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 5px;
+        }
+
+        .badge {
+            background-color: #4299e1;
+            color: #fff;
+            border-radius: 9999px;
+            padding: 5px 10px;
+        }
+    </style>
+    <script>
+        let chart;
+        let timeData = [];
+        let frequencyData = [];
+
+        async function actualizarDatos() {
+            const response = await fetch('/datos');
+            const datos = await response.json();
+
+            const tabla = document.getElementById('datos-tabla');
+            tabla.innerHTML = '<tr><th>Tecla</th><th>Nota Tecla</th><th>Frecuencia</th><th>Nota</th><th>Correcta</th><th>Timestamp</th></tr>';
+
+            datos.forEach(dato => {
+                const row = tabla.insertRow();
+                row.insertCell(0).innerText = dato.tecla;
+                row.insertCell(1).innerText = dato.nota_tecla; 
+                row.insertCell(2).innerText = dato.frecuencia;
+                row.insertCell(3).innerText = dato.nota;
+                row.insertCell(4).innerText = dato.correcta ? 'Sí' : 'No';
+                row.insertCell(5).innerText = dato.timestamp; // Mostrar el nuevo campo
+
+                // Actualizar datos para la gráfica
+                const timestamp = dato.timestamp;
+                if (timeData.length === 10) {
+                    timeData.shift();
+                    frequencyData.shift();
+                }
+                timeData.push(timestamp);
+                frequencyData.push(dato.frecuencia);
+            });
+
+            chart.data.labels = timeData;
+            chart.data.datasets[0].data = frequencyData;
+            chart.update('none');  // 'none' desactiva las animaciones
+        }
+
+        async function actualizarEstadisticas() {
+            const response = await fetch('/estadisticas');
+            const estadisticas = await response.json();
+
+            document.getElementById('total-notas').innerText = estadisticas.total_notas;
+            document.getElementById('total-correctas').innerText = estadisticas.total_correctas;
+            document.getElementById('porcentaje-correctas').innerText = estadisticas.porcentaje_correctas.toFixed(2) + '%';
+        }
+
+        function crearGrafica() {
+            const ctx = document.getElementById('frecuenciaChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeData,
+                    datasets: [{
+                        label: 'Frecuencia vs Tiempo',
+                        data: frequencyData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    animation: {
+                        duration: 0  // Desactivar animaciones
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tiempo'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frecuencia (Hz)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            crearGrafica();
+            actualizarDatos();
+            actualizarEstadisticas();
+            setInterval(() => {
+                actualizarDatos();
+                actualizarEstadisticas();
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+    <div class="container grid mx-auto p-4">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="border border-gray-500 p-10 pt-0 rounded-3xl h-full ">
+                <h1 class="text-2xl font-bold mt-5 pb-4">Datos en Tiempo Real</h1>
+                <table id="datos-tabla">
+                    <thead>
+                        <tr>
+                            <th>Tecla</th>
+                            <th>Frecuencia</th>
+                            <th>Nota</th>
+                            <th>Correcta</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="border border-gray-500 p-10 pt-0 rounded-3xl h-full w-full">
+                <h1 class="text-2xl font-bold mt-5 flex items-center py-4">Gráfica de Frecuencia vs Tiempo</h1>
+                <canvas id="frecuenciaChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <div>
+            
+            <div class="border border-gray-500 p-10 pt-0 rounded-3xl h-full">
+                <h1 class="text-2xl font-bold mt-5 py-4">Estadísticas</h1>
+                <ul class="flex list-group mt-3 gap-2">
+                    <div class="w-full">
+                        <li class="list-group-item flex justify-between items-center">
+                        Total de notas
+                        <span id="total-notas" class="badge bg-blue-500 text-white rounded-full px-2 py-1">0</span>
+                        </li>
+                        <li class="list-group-item flex justify-between items-center">
+                            Total de notas correctas
+                            <span id="total-correctas" class="badge bg-green-500 text-white rounded-full px-2 py-1">0</span>
+                        </li>
+                    </div>
+                    
+                    <li class="list-group-item flex justify-between items-center w-full">
+                        Porcentaje de notas correctas
+                        <span id="porcentaje-correctas" class="badge bg-teal-500 text-white rounded-full px-2 py-1">0%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+</body>
+</html>
