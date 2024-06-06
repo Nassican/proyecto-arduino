@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aplicación de Notas Musicales</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var socket = io();
+            var tabla = $('#tabla-notas').DataTable({
+                data: [],
+                columns: [
+                    { title: "Tecla" },
+                    { title: "Frecuencia" },
+                    { title: "Nota" },
+                    { title: "Correcta" }
+                ]
+            });
+
+            socket.on('connect', function() {
+                console.log('Conectado al servidor');
+                socket.emit('obtener_datos');
+            });
+
+            socket.on('actualizar_datos', function(data) {
+                tabla.clear();
+                tabla.rows.add(data);
+                tabla.draw();
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Aplicación de Notas Musicales</h1>
+    <table id="tabla-notas" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Tecla</th>
+                <th>Frecuencia</th>
+                <th>Nota</th>
+                <th>Correcta</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+</html>
