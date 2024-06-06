@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyecto Musical</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let chart;
+        let timeData = [];
+        let frequencyData = [];
+
         async function actualizarDatos() {
             const response = await fetch('/datos');
             const datos = await response.json();
@@ -19,22 +25,114 @@
                 row.insertCell(2).innerText = dato.nota;
                 row.insertCell(3).innerText = dato.correcta ? 'Sí' : 'No';
                 row.insertCell(4).innerText = dato.timestamp;
+
+                // Actualizar datos para la gráfica
+                const timestamp = dato.timestamp;
+                if (timeData.length === 10) {
+                    timeData.shift();
+                    frequencyData.shift();
+                }
+                timeData.push(timestamp);
+                frequencyData.push(dato.frecuencia);
+            });
+
+            chart.data.labels = timeData;
+            chart.data.datasets[0].data = frequencyData;
+            chart.update('none');  // 'none' desactiva las animaciones
+        }
+
+        async function actualizarEstadisticas() {
+            const response = await fetch('/estadisticas');
+            const estadisticas = await response.json();
+
+            document.getElementById('total-notas').innerText = estadisticas.total_notas;
+            document.getElementById('total-correctas').innerText = estadisticas.total_correctas;
+            document.getElementById('porcentaje-correctas').innerText = estadisticas.porcentaje_correctas.toFixed(2) + '%';
+        }
+
+        function crearGrafica() {
+            const ctx = document.getElementById('frecuenciaChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeData,
+                    datasets: [{
+                        label: 'Frecuencia vs Tiempo',
+                        data: frequencyData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    animation: {
+                        duration: 0  // Desactivar animaciones
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tiempo'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frecuencia (Hz)'
+                            }
+                        }
+                    }
+                }
             });
         }
 
-        setInterval(actualizarDatos, 1000);
+        window.onload = function() {
+            crearGrafica();
+            actualizarDatos();
+            actualizarEstadisticas();
+            setInterval(() => {
+                actualizarDatos();
+                actualizarEstadisticas();
+            }, 1000);
+        }
     </script>
 </head>
-<body onload="actualizarDatos()">
-    <h1>Datos en Tiempo Real</h1>
-    <table id="datos-tabla" border="1">
-        <tr>
-            <th>Tecla</th>
-            <th>Frecuencia</th>
-            <th>Nota</th>
-            <th>Correcta</th>
-            <th>Timestamp</th>
-        </tr>
-    </table>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Datos en Tiempo Real</h1>
+        <table id="datos-tabla" class="table table-striped mt-3">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Tecla</th>
+                    <th>Frecuencia</th>
+                    <th>Nota</th>
+                    <th>Correcta</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los datos se cargarán aquí -->
+            </tbody>
+        </table>
+
+        <h2 class="mt-5">Estadísticas</h2>
+        <ul class="list-group mt-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total de notas
+                <span id="total-notas" class="badge badge-primary badge-pill">0</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total de notas correctas
+                <span id="total-correctas" class="badge badge-success badge-pill">0</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Porcentaje de notas correctas
+                <span id="porcentaje-correctas" class="badge badge-info badge-pill">0%</span>
+            </li>
+        </ul>
+
+        <h2 class="mt-5">Gráfica de Frecuencia vs Tiempo</h2>
+        <canvas id="frecuenciaChart" width="400" height="200"></canvas>
+    </div>
 </body>
 </html>

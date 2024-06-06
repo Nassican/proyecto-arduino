@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db, Datos
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -27,11 +28,24 @@ def obtener_datos():
             'frecuencia': dato.frecuencia,
             'nota': dato.nota,
             'correcta': dato.correcta,
-            'timestamp': dato.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            'timestamp': dato.timestamp.strftime("%H:%M:%S")
         }
         for dato in datos
     ]
     return jsonify(resultados)
+
+@app.route('/estadisticas')
+def obtener_estadisticas():
+    total_notas = Datos.query.count()
+    total_correctas = Datos.query.filter_by(correcta=True).count()
+    porcentaje_correctas = (total_correctas / total_notas * 100) if total_notas > 0 else 0
+
+    estadisticas = {
+        'total_notas': total_notas,
+        'total_correctas': total_correctas,
+        'porcentaje_correctas': porcentaje_correctas
+    }
+    return jsonify(estadisticas)
 
 if __name__ == '__main__':
     app.run(debug=True)
