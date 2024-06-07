@@ -93,7 +93,7 @@ String determinarNota(double frecuencia) {
   if (notaIndex != -1 && minDiferencia < 30) {  // Tolerancia de 30 Hz
     return nombreNotas[notaIndex];
   } else {
-    return "Nota no encontrada";
+    return "--";
   }
 }
 
