@@ -24,10 +24,10 @@ int notas[16] = {
 };
 
 String nombreNotas[16] = {
-  "DO4", "RE4", "MI4", "FA4",
-  "SOL4", "LA4", "SI4", "DO5",
-  "RE5", "MI5", "FA5", "SOL5",
-  "LA5", "SI5", "DO6", "RE6"
+  "C4", "D4", "E4", "F4",
+  "G4", "A4", "B4", "C5",
+  "D5", "E5", "F5", "G5",
+  "A5", "B5", "C6", "D6"
 };
 
 #define SAMPLES 128             // SAMPLES-pt FFT. Debe ser una potencia de 2. Máximo 128 para Arduino Uno.
@@ -93,7 +93,7 @@ String determinarNota(double frecuencia) {
   if (notaIndex != -1 && minDiferencia < 30) {  // Tolerancia de 30 Hz
     return nombreNotas[notaIndex];
   } else {
-    return "Nota no encontrada";
+    return "--";
   }
 }
 
@@ -124,6 +124,7 @@ void loop() {
       // Enviar datos en formato JSON
       Serial.print("{");
       Serial.print("\"tecla\":\""); Serial.print(teclaPresionada); Serial.print("\",");
+      Serial.print("\"nota_tecla\":\""); Serial.print(nombreNotas[teclaIndex]); Serial.print("\","); // Agregar la nota correspondiente a la tecla presionada
       Serial.print("\"frecuencia\":"); Serial.print(frecuencia, 2); Serial.print(",");
       Serial.print("\"nota\":\""); Serial.print(nota); Serial.print("\",");
       Serial.print("\"correcta\":"); Serial.print(notaCorrecta ? "true" : "false");
