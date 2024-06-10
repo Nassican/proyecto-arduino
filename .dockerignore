@@ -1,0 +1,15 @@
+# Ignorar entornos virtuales de Python
+venv/
+*.pyc
+__pycache__/
+
+# Ignorar configuraciones del sistema operativo
+.DS_Store
+
+arduino/
+ArduinoEnv2/
+ArduinoEnv/
+
+# Ignorar archivos de configuración de entornos de desarrollo
+.env
+.env.*

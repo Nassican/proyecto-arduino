@@ -17,7 +17,16 @@ except serial.SerialException as e:
     exit()
 
 # Configuración de la base de datos
-DATABASE_URI = os.getenv('DATABASE_URL')
+# DATABASE_URI = os.getenv('DATABASE_URL')
+
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_NAME = os.getenv('DB_NAME')
+
+DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@localhost:5433/{DB_NAME}'
+
 engine = create_engine(DATABASE_URI)
 Session = sessionmaker(bind=engine)
 session = Session()
