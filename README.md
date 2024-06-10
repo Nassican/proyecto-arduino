@@ -46,27 +46,30 @@ Este proyecto combina Arduino con Flask para crear una experiencia musical inter
 
 ## Estructura del Proyecto
 
-|--arduino/
-|  |--proyecto_musical/
-|  |  |--proyecto_musical.ino
-|  |--proyecto_musical_solo_keypad.ino
-|  |--README.md
-|--server/
-|  |--static/
-|  |  |  |--src/
-|  |  |  |  |--chartRespaldo.js
-|  |  |  |  |--input.css
-|  |  |  |  |--script.js
-|  |--templates
-|  |  |--index.html
-|  |--app.py
-|  |--models.py
-|  |--read_serial.py
-|--.env
-|--.env.example
-|--init.sql
-|--Dockerfile
-|--docker-compose.yml
-|--.gitignore
-|--README.md
-|--requirements.txt
+```
+.
+├── arduino/
+│   ├── proyecto_musical/
+│   │   └── proyecto_musical.ino
+│   ├── proyecto_musical_solo_keypad.ino
+│   └── README.md
+├── server/
+│   ├── static/
+│   │   └── src/
+│   │       ├── chartRespaldo.js
+│   │       ├── input.css
+│   │       └── script.js
+│   ├── templates
+│   │   └── index.html
+│   ├── app.py
+│   ├── models.py
+│   └── read_serial.py
+├── .env
+├── .env.example
+├── init.sql
+├── Dockerfile
+├── docker-compose.yml
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
